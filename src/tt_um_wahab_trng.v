@@ -21,4 +21,10 @@ module tt_um_wahab_trng (
   assign uio_out = 0;
   assign uio_oe  = 0;
 
+    trng my_trng(
+        .clk (clk),
+        .n_reset (rst_n),
+        .rand_out (uo_out)
+    );
+
 endmodule
