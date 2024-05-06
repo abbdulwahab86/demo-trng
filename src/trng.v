@@ -1,6 +1,6 @@
 module trng(
     input clk,
-    input reset,
+    input n_reset,
     output reg [7:0] rand_out
 );
 
@@ -8,16 +8,16 @@ reg [7:0] noise;
 reg [7:0] lfsr_state;
 
 // Thermal noise generator
-always @(posedge clk or posedge reset) begin
-    if (reset)
+always @(posedge clk) begin
+    if (!n_reset)
         noise <= 8'h00; // Reset noise to zero on reset
     else
         noise <= $random; // Assuming $random generates random noise
 end
 
 // LFSR to mix noise
-always @(posedge clk or posedge reset) begin
-    if (reset)
+always @(posedge clk) begin
+    if (!n_reset)
         lfsr_state <= 8'hFF; // Initialize LFSR to all ones
     else if (clk) begin
         // LFSR taps for maximal length sequence
@@ -27,7 +27,7 @@ end
 
 // XOR noise and LFSR to produce output
 always @(posedge clk) begin
-    if (reset)
+    if (!n_reset)
         rand_out <= 8'h00; // Output zero on reset
     else
         rand_out <= noise ^ lfsr_state; // XOR noise and LFSR state
