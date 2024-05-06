@@ -3,13 +3,13 @@
 module trng_tb;
 
 reg clk;
-reg reset;
+reg n_reset;
 wire [7:0] rand_out;
 
 // Instantiate TRNG module
 trng uut (
     .clk(clk),
-    .reset(reset),
+    .n_reset(n_reset),
     .rand_out(rand_out)
 );
 
@@ -19,8 +19,8 @@ always #5 clk = ~clk;
 // Reset generation
 initial begin
     clk = 0;
-    reset = 1;
-    #10 reset = 0;
+    n_reset = 0;
+    #10 n_reset = 1;
 end
 
 // Dumping data to VCD file
