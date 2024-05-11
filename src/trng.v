@@ -1,37 +1,31 @@
-module trng(
-    input clk,
-    input n_reset,
-    output reg [7:0] rand_out
+module trng (
+  input clk,
+  input n_reset,
+  output reg [7:0] rand_out
 );
 
-reg [7:0] noise;
-reg [7:0] lfsr_state;
+// Ring oscillator (simplified model) - adjust delays for better randomness
+reg [2:0] ring_oscillator;
 
-// Thermal noise generator
 always @(posedge clk) begin
-    if (!n_reset)
-        noise <= 8'h00; // Reset noise to zero on reset
-    else
-        noise <= $random; // Assuming $random generates random noise
+  if (!n_reset) begin
+    ring_oscillator <= 3'b0; // Reset ring oscillator on active reset
+  end else begin
+    ring_oscillator[2:1] <= ring_oscillator[1:0];
+    ring_oscillator[0] <= ring_oscillator[2]^ring_oscillator[1];
+  end
 end
 
-// LFSR to mix noise
-always @(posedge clk) begin
-    if (!n_reset)
-        lfsr_state <= 8'hFF; // Initialize LFSR to all ones
-    else if (clk) begin
-        // LFSR taps for maximal length sequence
-        lfsr_state <= {lfsr_state[6:0], lfsr_state[7] ^ lfsr_state[5]}; 
-    end
-end
+// LFSR with feedback taps (adjust taps for better randomness)
+localparam int TAP1 = 2;
+localparam int TAP2 = 3;
 
-// XOR noise and LFSR to produce output
 always @(posedge clk) begin
-    if (!n_reset)
-        rand_out <= 8'h00; // Output zero on reset
-    else
-        rand_out <= noise ^ lfsr_state; // XOR noise and LFSR state
+  if (!n_reset) begin
+    rand_out <= 8'h00;  // Reset random output on active reset
+  end else begin
+    rand_out[7:1] <= rand_out[6:0];
+    rand_out[0]   <= ring_oscillator[0]^rand_out[TAP1]^rand_out[TAP2];
+  end
 end
-
 endmodule
-
