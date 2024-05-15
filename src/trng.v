@@ -24,8 +24,9 @@ always @(posedge clk) begin
   if (!n_reset) begin
     rand_out <= 8'h00;  // Reset random output on active reset
   end else begin
-    rand_out[7:1] <= rand_out[6:0];
-    rand_out[0]   <= ring_oscillator[0]^rand_out[TAP1]^rand_out[TAP2];
+    // rand_out[7:1] <= rand_out[6:0];
+    // rand_out[0]   <= ring_oscillator[0]^rand_out[TAP1]^rand_out[TAP2];
+    rand_out<=8'd50;
   end
 end
 endmodule
