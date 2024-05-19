@@ -24,7 +24,7 @@ module tt_um_wahab_demo_trng (
     trng my_trng(
         .clk (clk),
         .n_reset (rst_n),
-        .rand_out (uo_out)
+        .random_byte (uo_out)
     );
 
 endmodule
