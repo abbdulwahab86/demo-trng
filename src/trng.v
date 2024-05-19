@@ -1,36 +1,62 @@
-module trng(
-    input clk,
+`timescale 1ns / 1ps
+
+module ring_oscillator (
+    input clk,  // System clock
     input reset,
-    output reg [7:0] rand_out
+    output reg random_bit
 );
 
-reg [7:0] noise;
-reg [7:0] lfsr_state;
+    // Ring oscillator components
+    reg [2:0] ring;  // 3-stage ring oscillator
 
-// Thermal noise generator
-always @(posedge clk or posedge reset) begin
-    if (reset)
-        noise <= 8'h00; // Reset noise to zero on reset
-    else
-        noise <= $random; // Assuming $random generates random noise
-end
-
-// LFSR to mix noise
-always @(posedge clk or posedge reset) begin
-    if (reset)
-        lfsr_state <= 8'hFF; // Initialize LFSR to all ones
-    else if (clk) begin
-        // LFSR taps for maximal length sequence
-        lfsr_state <= {lfsr_state[6:0], lfsr_state[7] ^ lfsr_state[5]}; 
+    // Generate ring oscillator
+    always @(posedge clk or posedge reset) begin
+        if (reset) begin
+            ring <= 3'b001;  // Initial state
+        end else begin
+            ring[0] <= ring[2];
+            ring[1] <= ring[0];
+            ring[2] <= ~ring[1];  // Oscillate
+        end
     end
-end
 
-// XOR noise and LFSR to produce output
-always @(posedge clk) begin
-    if (reset)
-        rand_out <= 8'h00; // Output zero on reset
-    else
-        rand_out <= noise ^ lfsr_state; // XOR noise and LFSR state
-end
+    // Capture one bit of randomness from the ring oscillator
+    always @(posedge clk) begin
+        random_bit <= ring[0];
+    end
+endmodule
 
+module trng (
+    input clk,  // System clock
+    input reset,
+    output reg [7:0] random_byte
+);
+
+    reg [7:0] shift_reg;
+    wire random_bit;
+
+    // Instantiate the ring oscillator
+    ring_oscillator ro (
+        .clk(clk),
+        .reset(reset),
+        .random_bit(random_bit)
+    );
+
+    // Shift the random bit into the shift register to form a random byte
+    always @(posedge clk or posedge reset) begin
+        if (reset) begin
+            shift_reg <= 8'b0;
+        end else begin
+            shift_reg <= {shift_reg[6:0], random_bit};
+        end
+    end
+
+    // Output the random byte
+    always @(posedge clk or posedge reset) begin
+        if (reset) begin
+            random_byte <= 8'b0;
+        end else begin
+            random_byte <= shift_reg;
+        end
+    end
 endmodule
