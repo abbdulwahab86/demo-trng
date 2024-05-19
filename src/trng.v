@@ -38,7 +38,7 @@ module trng (
     // Instantiate the ring oscillator
     ring_oscillator ro (
         .clk(clk),
-        .reset(n_reset),
+        .reset(!n_reset),
         .random_bit(random_bit)
     );
 
