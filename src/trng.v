@@ -10,7 +10,7 @@ module ring_oscillator (
     reg [2:0] ring;  // 3-stage ring oscillator
 
     // Generate ring oscillator
-    always @(posedge clk or posedge reset) begin
+    always @(posedge clk or posedge !n_reset) begin
         if (!n_reset) begin
             ring <= 3'b001;  // Initial state
         end else begin
@@ -43,7 +43,7 @@ module trng (
     );
 
     // Shift the random bit into the shift register to form a random byte
-    always @(posedge clk or posedge reset) begin
+    always @(posedge clk or posedge !n_reset) begin
         if (!n_reset) begin
             shift_reg <= 8'b0;
         end else begin
@@ -52,7 +52,7 @@ module trng (
     end
 
     // Output the random byte
-    always @(posedge clk or posedge reset) begin
+    always @(posedge clk or posedge !n_reset) begin
         if (!n_reset) begin
             random_byte <= 8'b0;
         end else begin
